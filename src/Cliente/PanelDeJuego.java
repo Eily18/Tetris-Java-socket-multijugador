@@ -13,13 +13,17 @@ public class PanelDeJuego extends JPanel implements Runnable{
     Pieza actual = Pieza.piezaRandom(); //pieza que cae 
     boolean GameOver = false; //
     int puntuacion = 0; //puntos acumulados
+    int puntuacionRival = 0; // guardar los puntos que recibimos del oponente
     ConexionCliente red; // Conexion con el servidor
+    
 
     // el constructor se ejecuta una vez al iniciar
 
     public PanelDeJuego(){
-        try { red = new ConexionCliente(); } //intenta conectar con el servidor
-        catch(Exception e){}
+        try { red = new ConexionCliente(this); } //intenta conectar con el servidor
+        catch(Exception e){
+            System.err.println("Error al conectar: " + e.getMessage());
+        }
         addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e){
                  // si se presiona izquierda y hay espacio la pieza se mueve
@@ -33,19 +37,19 @@ public class PanelDeJuego extends JPanel implements Runnable{
                     actual.y++;
 
                if (e.getKeyCode() == KeyEvent.VK_UP) {
-                   // 1. Guardamos la forma actual por si la rotación falla
+                   // guardar por si la rotacion falla
                    int[][] formaAnterior = actual.forma;
     
-                         // 2. Rotamos temporalmente
+                         // rotar pieza
                          actual.rotar();
     
-                        // 3. Verificamos si la nueva posición es válida
+                        // ver si la posicion es valida
                          if (!Tablero.puedemover(actual, 0, 0)) {
-                        // Si choca, volvemos a la forma anterior
+                        // si choca volver a la anterior
                         actual.forma = formaAnterior;
                          }
     
-                             repaint(); // Actualizamos el "front" para ver el giro
+                             repaint(); // actualizar para ver el giro
                                                 }
 
                 repaint(); // borra y vuelve a dibujar para ver el movimiento
@@ -55,6 +59,12 @@ public class PanelDeJuego extends JPanel implements Runnable{
         setFocusable(true); // Dice que este panel debe recibir los clicks del teclado
         new Thread(this).start(); //arranca el tiempo
 
+    }
+
+    //Método para que ConexionCliente nos dé los puntos del rival
+    public void actualizarPuntajeRival(int puntos) {
+        this.puntuacionRival = puntos;
+        repaint(); // actualiza la pantalla para ver el cambio
     }
 
     public void run(){ // bucle
@@ -67,6 +77,10 @@ public class PanelDeJuego extends JPanel implements Runnable{
             else {Tablero.fijar(actual); //deja la pieza fija
                 puntuacion += Tablero.limpiarlineas() *100; //suma puntos si lleno filas
                 actual = Pieza.piezaRandom(); //lanza una pieza nueva desde arriba
+
+                try {
+                    red.enviar(new EstadoJuego(puntuacion, false));
+                } catch(Exception e) {}
 
                 //si la nueva pieza no cabe, se acaba el juego
 
@@ -85,11 +99,11 @@ public class PanelDeJuego extends JPanel implements Runnable{
 
         super.paintComponent(g); // limpia el lienzo
 
-        // 1. PINTAR EL FONDO DEL PANEL (Esto quitará el blanco)
+        // pintar fondo de panel
     g.setColor(Color.BLACK);
     g.fillRect(0, 0, getWidth(), getHeight());
 
-    // 2. DIBUJAR LAS PIEZAS FIJAS (El tablero)
+    // tablero, dibujar piezas filas
     for (int r = 0; r < TableroDeJuego.FILAS; r++) {
         for (int c = 0; c < TableroDeJuego.COLUMNAS; c++) {
             if (Tablero.Matriz[r][c] == 1) {
@@ -98,7 +112,7 @@ public class PanelDeJuego extends JPanel implements Runnable{
         }
     }
 
-    // 3. DIBUJAR LA PIEZA QUE ESTÁ CAYENDO (Para que no sea invisible)
+    // dibujar pieza cayendo
     if (actual != null) {
         for (int r = 0; r < actual.forma.length; r++) {
             for (int c = 0; c < actual.forma[r].length; c++) {
@@ -112,25 +126,23 @@ public class PanelDeJuego extends JPanel implements Runnable{
         }
     }
            
-          // --- DIBUJAR MARCADOR DE PUNTOS ---
-    g.setColor(Color.WHITE);
-    g.setFont(new Font("Arial", Font.BOLD, 20)); // Fuente elegante y grande
-    
-    // Dibujamos el texto: "Puntos: " + el valor de la variable puntuacion
-    // Las coordenadas (20, 30) lo ponen en la esquina superior izquierda
-    g.drawString("PUNTOS: " + puntuacion, 20, 30);
-    
-    // Opcional: Si quieres que sea multijugador, puedes poner el tuyo a la izquierda
-    // y el del oponente a la derecha.
+          // marcador de puntos
+        g.setFont(new Font("Arial", Font.BOLD, 18));
+        
+        g.setColor(Color.WHITE);
+        g.drawString("TÚ: " + puntuacion, 10, 25);
+        
+        g.setColor(Color.YELLOW);
+        g.drawString("RIVAL: " + puntuacionRival, 180, 25);
 
-    //MENSAJE DE QUE PERDISTE------------
+    //GameOver
 
-       if (GameOver) { // Usando la variable que ya tienes en el código
-    // 1. Oscurecer la pantalla (Capucha negra semitransparente)
+       if (GameOver) {
+    // oscurecer la pantalla 
     g.setColor(new Color(0, 0, 0, 150)); // El 150 es la transparencia
     g.fillRect(0, 0, getWidth(), getHeight());
 
-    // 2. Mensaje de Fin de Juego
+    // mensaje de Fin de Juego
     g.setColor(Color.RED);
     g.setFont(new Font("Monospaced", Font.BOLD, 40));
     g.drawString("GAME OVER", 50, getHeight() / 2);
