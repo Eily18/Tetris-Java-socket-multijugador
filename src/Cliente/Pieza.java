@@ -25,4 +25,17 @@ public class Pieza {
         // elige una forma de la lista usando un numero al azar y crea una pieza nueva
         return new Pieza(formasPosibles[(int)(Math.random() * formasPosibles.length)]);
     }
+          
+           public void rotar() {
+            int[][] nuevaForma = new int[forma[0].length][forma.length];
+              for (int r = 0; r < forma.length; r++) {
+
+                for (int c = 0; c < forma[0].length; c++) {
+
+                 nuevaForma[c][forma.length - 1 - r] = forma[r][c];
+        }
+    }
+    forma = nuevaForma;
+}
+
 }

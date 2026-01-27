@@ -1,9 +1,9 @@
 package Cliente;
 
 public class TableroDeJuego { // se define el tamaño de filas y columnas
-    public static final int filas = 20, columnas = 10;
+    public static final int FILAS = 20, COLUMNAS = 10;
     // se crea el tablero como una cuadricula de numeros (0 para vacio, 1 para bloque)
-    public int[][] Matriz = new int[filas][columnas];
+    public int[][] Matriz = new int[FILAS][COLUMNAS];
     // funcion para mover la pieza (p=pieza, dx = movimiento horizontal, dy = movimiento vertical)
     public boolean puedemover(Pieza p, int movX, int movY){
         // revisa cada fila (r) y columna (c) de la forma de la pieza
@@ -15,7 +15,7 @@ public class TableroDeJuego { // se define el tamaño de filas y columnas
         int futuroX = p.x + c + movX;
         int futuroY = p.y + r + movY;
         // verifica si se sale de los bordes izquierdo, derecho o inferior
-        if(futuroX < 0 || futuroX >= columnas || futuroY >= filas) return false;
+        if(futuroX < 0 || futuroX >= COLUMNAS || futuroY >= FILAS) return false;
         // se verifica si en esa posicion ya hay otra piedra (1)
         if(futuroY >= 0 && Matriz[futuroY][futuroX] == 1) return false;
     }
@@ -34,10 +34,10 @@ public class TableroDeJuego { // se define el tamaño de filas y columnas
     // funcion para limpiar las lineas que esten completas
     public int limpiarlineas() {
         int lineasContadas = 0;
-        for (int r=0; r < filas; r++) {
+        for (int r=0; r < FILAS; r++) {
             boolean llena = true;
             // Si encuentra un solo 0, la fila no está llena
-            for (int c=0; c < columnas; c++)
+            for (int c=0; c < COLUMNAS; c++)
                 if (Matriz[r][c] == 0) llena = false;
             
             if (llena) {
