@@ -10,7 +10,8 @@ import javax.swing.*;
 public class PanelDeJuego extends JPanel implements Runnable{
 
     TableroDeJuego Tablero = new TableroDeJuego(); // los cuadritos
-    Pieza actual = Pieza.piezaRandom(); //pieza que cae 
+    Pieza actual= Pieza.piezaRandom() ;//= Pieza.piezaRandom(); //pieza que cae 
+    Pieza siguiente = Pieza.piezaRandom() ;
     boolean GameOver = false; //
     int puntuacion = 0; //puntos acumulados
     int puntuacionRival = 0; // guardar los puntos que recibimos del oponente
@@ -79,6 +80,10 @@ public class PanelDeJuego extends JPanel implements Runnable{
             if (Tablero.puedemover(actual,0,1)){actual.y++;} //baja un nivel
             else {Tablero.fijar(actual); //deja la pieza fija
                 puntuacion += Tablero.limpiarlineas() *100; //suma puntos si lleno filas
+                 actual = siguiente; //se lanza lapieza
+                siguiente = Pieza.piezaRandom(); // gnera la pieza antes
+
+
                 if(red !=null){
                     try{
                         red.enviar(new EstadoJuego(puntuacion, false));
@@ -105,9 +110,25 @@ public class PanelDeJuego extends JPanel implements Runnable{
 
         super.paintComponent(g); // limpia el lienzo
 
-        // pintar fondo de panel
-    g.setColor(Color.BLACK);
-    g.fillRect(0, 0, getWidth(), getHeight());
+        
+   // --- 1. FONDO PRINCIPAL ---
+    g.setColor(Color.BLACK); // Fondo del área de juego (izq)
+    g.fillRect(0, 0, 300, getHeight());
+
+    // color de la cadricula
+g.setColor(new Color(40, 40, 40)); // Un gris 
+
+// Dibujar líneas verticales
+for (int c = 0; c <= TableroDeJuego.COLUMNAS; c++) {
+    int x = c * 30;
+    g.drawLine(x, 0, x, TableroDeJuego.FILAS * 30);
+}
+
+// Dibujar líneas horizontales
+for (int r = 0; r <= TableroDeJuego.FILAS; r++) {
+    int y = r * 30;
+    g.drawLine(0, y, 300, y);
+}
 
     // tablero, dibujar piezas filas
     for (int r = 0; r < TableroDeJuego.FILAS; r++) {
@@ -131,17 +152,59 @@ public class PanelDeJuego extends JPanel implements Runnable{
             }
         }
     }
+
+            // --- 2. PANEL LATERAL GRIS ---
+    g.setColor(Color.DARK_GRAY); // El color gris que pediste
+    g.fillRect(300, 0, 200, getHeight()); // Empieza en 300 y mide 100 de ancho
+    
+    // Borde separador para que se vea más profesional
+    g.setColor(Color.WHITE);
+    g.drawLine(300, 0, 300, getHeight());
+
+
+
+     
+             // ventana de la proximapieza
+g.setColor(Color.WHITE);
+g.setFont(new Font("Arial", Font.BOLD, 14));
+g.drawString("SIGUIENTE:", 315, 260); // Un poco más abajo de los puntos
+
+if (siguiente != null) {
+    // Recorremos la matriz de la pieza que está en espera
+    for (int r = 0; r < siguiente.forma.length; r++) {
+        for (int c = 0; c < siguiente.forma[r].length; c++) {
+            if (siguiente.forma[r][c] == 1) {
+                // Dibujamos en miniatura (20px) para que quepa bien
+                // 325 y 280 son las coordenadas iniciales dentro del panel gris
+                int xMini = 325 + (c * 20); 
+                int yMini = 280 + (r * 20);
+                
+                // Usamos un color fijo por ahora o el que definamos en Pieza.java
+                g.setColor(Color.ORANGE); 
+                g.fillRect(xMini, yMini, 18, 18); // 18px para dejar 2px de borde
+                
+                g.setColor(Color.WHITE);
+                g.drawRect(xMini, yMini, 18, 18);
+            }
+        }
+    }
+}
+
            
           // marcador de puntos
         g.setFont(new Font("Arial", Font.BOLD, 18));
         
         g.setColor(Color.WHITE);
-        g.drawString("TÚ: " + puntuacion, 10, 25);
+        g.drawString("TÚ: " + puntuacion, 310, 100);
         
         g.setColor(Color.YELLOW);
-        g.drawString("RIVAL: " + puntuacionRival, 180, 25);
+        g.drawString("RIVAL: " + puntuacionRival, 310, 150);
 
-    //GameOver
+   
+    
+    
+    
+                //GameOver
 
        if (GameOver) {
     // oscurecer la pantalla 
@@ -158,6 +221,10 @@ public class PanelDeJuego extends JPanel implements Runnable{
     g.drawString("Presiona R para reiniciar", 80, (getHeight() / 2) + 40);
 }
 
+
+
+
+
 }
 
 // Método auxiliar para que los cuadritos se vean con borde
@@ -167,4 +234,6 @@ private void dibujarCuadrito(Graphics g, int x, int y, Color color) {
     g.setColor(color.darker()); // Borde más oscuro para que se note el bloque
     g.drawRect(x, y, 30, 30);
                 }
-            }
+ }
+
+            
