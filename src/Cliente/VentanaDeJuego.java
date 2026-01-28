@@ -1,12 +1,16 @@
 package Cliente;
 import javax.swing.*; //importar la herramienta para dibujar ventanas y botones.
+import java.awt.Color;
 
 public class VentanaDeJuego extends JFrame{ //Definicion de la "VentanaDeJuego" con JFrame
-    public VentanaDeJuego(){ //constructor para crear la ventana
-        setTitle("Tetris"); // titulo en la parte arriba de la ventana
-        setSize(300, 600); //Definicion de tamaño, ancho y alto
+    public VentanaDeJuego(ConexionCliente red){ //constructor para crear la ventana
+        setTitle("TETRIS"); // titulo en la parte arriba de la ventana
+        setSize(400, 650); //Definicion de tamaño, ancho y alto!!!!!
+        setLocationRelativeTo(null); // ESTO CENTRA LA VENTANA EN LA PANTALLA AL ABRIR!!!
+        setResizable(false); // Evita que el usuario estire la ventana y rompa el diseño!!!!!
+        getContentPane().setBackground(Color.DARK_GRAY); // Color de fondo del marco!!!!!
         setDefaultCloseOperation(EXIT_ON_CLOSE); // Si se cierra la ventana, el programa se detiene por completo
-        add(new PanelDeJuego()); // se añade el tablero(panelDeJuego) dentro de la ventana
+        add(new PanelDeJuego(red)); // se añade el tablero(panelDeJuego) dentro de la ventana
         setVisible(true); //se hace visible la ventana para el cliente
     }
 
