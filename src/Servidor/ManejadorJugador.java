@@ -15,6 +15,11 @@ public class ManejadorJugador extends Thread{ //la clase es un hilo y hace que e
         entrada = new ObjectInputStream(s.getInputStream()); 
     }
 
+    public void enviarSeñalInicio() throws IOException{
+        salida.writeObject("START");
+        salida.flush();
+        }
+
     // el metodo run() es lo que el hilo hace cuando se le da a "start()"
     @Override
     public void run() {

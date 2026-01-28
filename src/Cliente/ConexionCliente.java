@@ -26,18 +26,24 @@ public class ConexionCliente {
     public void setPanel(PanelDeJuego panel){
         this.miPanel = panel;
     }
+    //metodo para escuchar
     private void iniciarEscucha() {
         new Thread(() -> {
             try {
                 while (true) {
-                    // espera a que el servidor mande el puntaje del oponente
-                    EstadoJuego ejOponente = (EstadoJuego) entrada.readObject();
-
-                    if(miPanel != null){
-                    
-                    // pantalla actualizada
-                    System.out.println("El oponente ahora tiene: " + ejOponente.puntuacion);
-                    miPanel.actualizarPuntajeRival(ejOponente.puntuacion);
+                    Object recibido = entrada.readObject();
+                    if (recibido instanceof String && recibido.equals("START")){
+                        if(miPanel != null){
+                            miPanel.EmpezarJuego();
+                        }
+                    }
+                    else if(recibido instanceof EstadoJuego)  {
+                        EstadoJuego ejOponente = (EstadoJuego) recibido;
+                        if(miPanel != null){
+                        // pantalla actualizada
+                        System.out.println("El oponente ahora tiene: " + ejOponente.puntuacion);
+                            miPanel.actualizarPuntajeRival(ejOponente);
+                        }
                     }
                 }
             } catch (Exception e) {

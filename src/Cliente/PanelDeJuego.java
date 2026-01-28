@@ -4,7 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-// Definicion de panel 
+// definicion de panel 
 // Jpanel es donde se va a dibujar
 // Runnable es la capacidad de hacer cosas al mismo tiempo (como un reloj) 
 public class PanelDeJuego extends JPanel implements Runnable{
@@ -22,7 +22,11 @@ public class PanelDeJuego extends JPanel implements Runnable{
 
     public PanelDeJuego(ConexionCliente red){
        this.red = red; // Guardamos la conexión que recibimos
-        
+
+       /* se ponen las piezas en null al inicio para que el paintcomponent
+        muestre el esperando contrincante*/
+        this.actual = null;
+        this.siguiente = null;
         // IMPORTANTE: Le decimos a la conexión que este es su panel actual
         // para que cuando lleguen puntos del rival, sepa a quién avisar.
         if (this.red != null) {
@@ -30,6 +34,11 @@ public class PanelDeJuego extends JPanel implements Runnable{
         }
         addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e){
+                //presiona s para jugar solo
+                if (e.getKeyCode() == KeyEvent.VK_S && actual == null){
+                    EmpezarJuego();
+                }
+                if(actual != null){
                  // si se presiona izquierda y hay espacio la pieza se mueve
                 if (e.getKeyCode() == KeyEvent.VK_LEFT && Tablero.puedemover(actual,-1,0))
                     actual.x--;
@@ -53,22 +62,35 @@ public class PanelDeJuego extends JPanel implements Runnable{
                         actual.forma = formaAnterior;
                          }
     
-                             repaint(); // actualizar para ver el giro
-                                                }
+                             
+                    }
+                 }
 
                 repaint(); // borra y vuelve a dibujar para ver el movimiento
             }
         });
 
         setFocusable(true); // Dice que este panel debe recibir los clicks del teclado
-        new Thread(this).start(); //arranca el tiempo
+        this.requestFocusInWindow();
 
     }
     
     //Método para que ConexionCliente nos dé los puntos del rival
-    public void actualizarPuntajeRival(int puntos) {
-        this.puntuacionRival = puntos;
+    public void actualizarPuntajeRival(EstadoJuego ej) {
+        this.puntuacionRival = ej.puntuacion;
+        if(ej.isGameOver){ //si el oponente perdio, el juego se detiene
+            this.GameOver = true;
+        }
         this.repaint(); // actualiza la pantalla para ver el cambio
+    }
+
+    //metodo para empezar el juego
+    public void EmpezarJuego(){
+        if(actual == null){
+            actual = Pieza.piezaRandom();
+            siguiente = Pieza.piezaRandom();
+            new Thread(this).start();
+        }
     }
 
     public void run(){ // bucle
@@ -78,45 +100,57 @@ public class PanelDeJuego extends JPanel implements Runnable{
             catch(Exception e){} // pausa de medio segundo (gravedad)
             // si la pieza puede seguir bajando
             if (Tablero.puedemover(actual,0,1)){actual.y++;} //baja un nivel
-            else {Tablero.fijar(actual); //deja la pieza fija
-                puntuacion += Tablero.limpiarlineas() *100; //suma puntos si lleno filas
-                 actual = siguiente; //se lanza lapieza
-                siguiente = Pieza.piezaRandom(); // gnera la pieza antes
+            else {
+                Tablero.fijar(actual);
+                puntuacion += Tablero.limpiarlineas() * 100;
 
+                if (puntuacion >= 1000) {
+                    GameOver = true;
+                }
 
-                if(red !=null){
-                    try{
-                        red.enviar(new EstadoJuego(puntuacion, false));
-                    } catch (Exception e){
+                actual = siguiente;
+                siguiente = Pieza.piezaRandom();
+
+                // notificar al servidor el estado actual
+                if (red != null) {
+                    try {
+                        red.enviar(new EstadoJuego(puntuacion, GameOver));
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
-                actual = Pieza.piezaRandom(); //lanza una pieza nueva desde arriba
 
-                try {
-                    red.enviar(new EstadoJuego(puntuacion, false));
-                } catch(Exception e) {}
-
-                //si la nueva pieza no cabe, se acaba el juego
-
-                if (!Tablero.puedemover(actual,0,0))
+                // si al salir la nueva pieza no cabe, es GameOver real
+                if (!Tablero.puedemover(actual, 0, 0)) {
                     GameOver = true;
-            }
-            repaint(); //actualiza la pantalla
-        }
-        try {
-                    red.enviar(new EstadoJuego(puntuacion, true));
-                } catch(Exception e) {}
-       
-    }
+                    if (red != null) {
+                        try {
+                            red.enviar(new EstadoJuego(puntuacion, true));
+                        } catch (Exception e) {}
+                    }
+                }
+            } //Esta llave es la que faltaba para cerrar el 'else'
+
+            repaint(); // actualiza la pantalla en cada paso del bucle
+        } 
+    } 
+
     protected void paintComponent(Graphics g){
 
         super.paintComponent(g); // limpia el lienzo
 
-        
-   // --- 1. FONDO PRINCIPAL ---
     g.setColor(Color.BLACK); // Fondo del área de juego (izq)
     g.fillRect(0, 0, 300, getHeight());
+
+    if(!GameOver && actual == null){
+            g.setColor(Color.WHITE);
+
+            g.drawString("ESPERANDO CONTRINCANTE...", 50, getHeight()/2-20);
+
+            g.setColor(Color.YELLOW);
+            g.drawString("O presiona 'S' para jugar solo", 50, (getHeight()/2+20));
+            return;
+        }
 
     // color de la cadricula
 g.setColor(new Color(40, 40, 40)); // Un gris 
@@ -156,16 +190,13 @@ for (int r = 0; r <= TableroDeJuego.FILAS; r++) {
         }
     }
 
-            // --- 2. PANEL LATERAL GRIS ---
+            // panel lateral
     g.setColor(Color.DARK_GRAY); // El color gris que pediste
     g.fillRect(300, 0, 200, getHeight()); // Empieza en 300 y mide 100 de ancho
     
     // Borde separador para que se vea más profesional
     g.setColor(Color.WHITE);
     g.drawLine(300, 0, 300, getHeight());
-
-
-
      
              // ventana de la proximapieza
 g.setColor(Color.WHITE);
@@ -192,9 +223,8 @@ if (siguiente != null) {
         }
     }
 }
-
            
-          // marcador de puntos
+        // marcador de puntos
         g.setFont(new Font("Arial", Font.BOLD, 18));
         
         g.setColor(Color.WHITE);
@@ -202,31 +232,34 @@ if (siguiente != null) {
         
         g.setColor(Color.YELLOW);
         g.drawString("RIVAL: " + puntuacionRival, 310, 150);
-
-   
     
-    
-    
-                //GameOver
+    //GameOver
 
        if (GameOver) {
     // oscurecer la pantalla 
     g.setColor(new Color(0, 0, 0, 150)); // El 150 es la transparencia
     g.fillRect(0, 0, getWidth(), getHeight());
 
-    // mensaje de Fin de Juego
+    if(puntuacion > puntuacionRival){
+        g.setColor(Color.GREEN);
+        g.setFont(new Font("Monospaced", Font.BOLD, 40));
+        g.drawString("YOU WIN", 50, getHeight() / 2);
+    }
+    else if (puntuacion < puntuacionRival){
+        
     g.setColor(Color.RED);
     g.setFont(new Font("Monospaced", Font.BOLD, 40));
-    g.drawString("GAME OVER", 50, getHeight() / 2);
+    g.drawString("YOU LOSE", 50, getHeight() / 2);
+    } 
+    else {
+        g.setColor(Color.YELLOW);
+        g.drawString("EMPATE", 85, getHeight() / 2);
+    }
     
     g.setFont(new Font("Arial", Font.PLAIN, 15));
     g.setColor(Color.WHITE);
-    g.drawString("Presiona R para reiniciar", 80, (getHeight() / 2) + 40);
+    g.drawString("Puntaje final: " + puntuacion, 80, (getHeight() / 2) + 40);
 }
-
-
-
-
 
 }
 
