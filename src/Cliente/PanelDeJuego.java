@@ -13,6 +13,7 @@ public class PanelDeJuego extends JPanel implements Runnable{
     Pieza actual= Pieza.piezaRandom() ;//= Pieza.piezaRandom(); //pieza que cae 
     Pieza siguiente = Pieza.piezaRandom() ;
     boolean GameOver = false; //
+    boolean EnMenu = true;
     int puntuacion = 0; //puntos acumulados
     int puntuacionRival = 0; // guardar los puntos que recibimos del oponente
     ConexionCliente red; // Conexion con el servidor
@@ -139,9 +140,35 @@ public class PanelDeJuego extends JPanel implements Runnable{
 
         super.paintComponent(g); // limpia el lienzo
 
-    g.setColor(Color.BLACK); // Fondo del área de juego (izq)
-    g.fillRect(0, 0, 300, getHeight());
+   /*  g.setColor(Color.BLACK); // Fondo del área de juego (izq)
+    g.fillRect(0, 0, 300, getHeight()); */
 
+           //  FONDO PRINCIPAL
+Graphics2D g2d = (Graphics2D) g;
+
+// Un azul cobalto/espacial 
+Color azulEspacial = new Color(30, 60, 150); 
+Color negroProfundo = new Color(5, 5, 15); // Casi negro, pero con un toque azul
+
+// El degradado 
+GradientPaint gp = new GradientPaint(0, 0, azulEspacial, 0, getHeight(), negroProfundo);
+
+g2d.setPaint(gp);
+g2d.fillRect(0, 0, 300, getHeight());
+
+// --- estrellitas
+// Dibujamos unos puntitos blancos fijos para que parezcan estrellas
+g.setColor(new Color(255, 255, 255, 150)); // Blanco con transparencia
+g.fillOval(50, 80, 2, 2);
+g.fillOval(200, 150, 2, 2);
+g.fillOval(120, 300, 2, 2);
+g.fillOval(250, 450, 2, 2);
+g.fillOval(30, 550, 2, 2);
+
+
+
+
+            // seudomenu
     if(!GameOver && actual == null){
             g.setColor(Color.WHITE);
 
@@ -191,17 +218,26 @@ for (int r = 0; r <= TableroDeJuego.FILAS; r++) {
     }
 
             // panel lateral
-    g.setColor(Color.DARK_GRAY); // El color gris que pediste
-    g.fillRect(300, 0, 200, getHeight()); // Empieza en 300 y mide 100 de ancho
+    g.setColor(new Color(75, 0, 130)); // El color gris 
+    g.fillRect(300, 0, 200, getHeight()); // Empieza en 300 y mide 200 de ancho
     
-    // Borde separador para que se vea más profesional
+    // Borde separador 
     g.setColor(Color.WHITE);
     g.drawLine(300, 0, 300, getHeight());
      
-             // ventana de la proximapieza
+             // ventana de la proxi mapieza
 g.setColor(Color.WHITE);
 g.setFont(new Font("Arial", Font.BOLD, 14));
 g.drawString("SIGUIENTE:", 315, 260); // Un poco más abajo de los puntos
+
+           // 1. Dibujamos el fondo negro de la cajita
+        // (x=315, y=275, ancho=90, alto=90)
+g.setColor(Color.BLACK);
+g.fillRoundRect(315, 275, 110, 90, 15, 15); // RoundRect para que se vea más moderno
+
+// 2. Dibujamos un borde blanco sutil para la cajita
+g.setColor(new Color(255, 255, 255, 100)); // Blanco con transparencia
+g.drawRoundRect(315, 275, 110, 90, 15, 15);
 
 if (siguiente != null) {
     // Recorremos la matriz de la pieza que está en espera
@@ -209,9 +245,9 @@ if (siguiente != null) {
         for (int c = 0; c < siguiente.forma[r].length; c++) {
             if (siguiente.forma[r][c] == 1) {
                 // Dibujamos en miniatura (20px) para que quepa bien
-                // 325 y 280 son las coordenadas iniciales dentro del panel gris
-                int xMini = 325 + (c * 20); 
-                int yMini = 280 + (r * 20);
+                // 330 y 310 son las coordenadas iniciales dentro del panel gris
+                int xMini = 330 + (c * 20); 
+                int yMini = 310 + (r * 20);
                 
                 // Usamos un color fijo por ahora o el que definamos en Pieza.java
                 g.setColor(Color.ORANGE); 
@@ -224,14 +260,52 @@ if (siguiente != null) {
     }
 }
            
-        // marcador de puntos
-        g.setFont(new Font("Arial", Font.BOLD, 18));
-        
-        g.setColor(Color.WHITE);
-        g.drawString("TÚ: " + puntuacion, 310, 100);
-        
-        g.setColor(Color.YELLOW);
-        g.drawString("RIVAL: " + puntuacionRival, 310, 150);
+        // puntuaje----
+// Configuración para las "cajas" de los puntos
+int cajaAncho = 160;
+int cajaAlto = 70;
+int margenX = 320; // Dejamos 20px de margen desde el inicio del panel (300+20)
+Color colorCajaFondo = new Color(100, 20, 160); // Un morado un poco más claro
+
+// --- Marcador: TÚ ---
+// 1. Fondo de la caja con esquinas redondeadas
+g.setColor(colorCajaFondo);
+g.fillRoundRect(margenX, 50, cajaAncho, cajaAlto, 20, 20);
+// 2. Borde brillante para que resalte
+g.setColor(Color.CYAN);
+g.drawRoundRect(margenX, 50, cajaAncho, cajaAlto, 20, 20);
+
+// 3. Texto de la etiqueta (pequeño)
+g.setColor(Color.LIGHT_GRAY);
+g.setFont(new Font("Monospaced", Font.BOLD, 14));
+g.drawString("TÚ", margenX + 15, 75);
+
+// 4. Texto del PUNTAJE (grande y llamativo)
+g.setColor(Color.CYAN);
+g.setFont(new Font("Monospaced", Font.BOLD, 30));
+// Usamos tu variable 'puntuacion'
+g.drawString("" + puntuacion, margenX + 15, 110);
+
+
+// --- Marcador: RIVAL ---
+int yRival = 140; // Posición Y para el segundo bloque
+
+// 1. Fondo y borde (usamos Amarillo para diferenciar al rival)
+g.setColor(colorCajaFondo);
+g.fillRoundRect(margenX, yRival, cajaAncho, cajaAlto, 20, 20);
+g.setColor(Color.YELLOW); 
+g.drawRoundRect(margenX, yRival, cajaAncho, cajaAlto, 20, 20);
+
+// 2. Etiqueta
+g.setColor(Color.LIGHT_GRAY);
+g.setFont(new Font("Monospaced", Font.BOLD, 14));
+g.drawString("RIVAL", margenX + 15, yRival + 25);
+
+// 3. Puntaje del Rival
+g.setColor(Color.YELLOW);
+g.setFont(new Font("Monospaced", Font.BOLD, 30));
+// Usamos tu variable 'puntuacionRival'
+g.drawString("" + puntuacionRival, margenX + 15, yRival + 60);
     
     //GameOver
 
