@@ -16,6 +16,7 @@ public class ConexionCliente {
 
         // se conecta al socket
         salida = new ObjectOutputStream(s.getOutputStream());
+        this.salida.flush();
         entrada = new ObjectInputStream(s.getInputStream());
          // hilo de escucha
          iniciarEscucha();
