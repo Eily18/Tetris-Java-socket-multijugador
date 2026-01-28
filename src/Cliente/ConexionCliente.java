@@ -3,6 +3,7 @@ import java.io.*;   // Herramientas para enviar y recibir datos
 import java.net.*;  // Herramientas para la red
 import Shared.EstadoJuego; // El paquete de información que se va a enviar
 
+
 public class ConexionCliente {
     // para que los objetos vayan al servidor
     ObjectOutputStream salida;

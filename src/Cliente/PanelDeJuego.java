@@ -68,7 +68,7 @@ public class PanelDeJuego extends JPanel implements Runnable{
     //Método para que ConexionCliente nos dé los puntos del rival
     public void actualizarPuntajeRival(int puntos) {
         this.puntuacionRival = puntos;
-        repaint(); // actualiza la pantalla para ver el cambio
+        this.repaint(); // actualiza la pantalla para ver el cambio
     }
 
     public void run(){ // bucle
@@ -104,6 +104,9 @@ public class PanelDeJuego extends JPanel implements Runnable{
             }
             repaint(); //actualiza la pantalla
         }
+        try {
+                    red.enviar(new EstadoJuego(puntuacion, true));
+                } catch(Exception e) {}
        
     }
     protected void paintComponent(Graphics g){

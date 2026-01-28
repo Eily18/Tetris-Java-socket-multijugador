@@ -19,12 +19,21 @@ public class ManejadorJugador extends Thread{ //la clase es un hilo y hace que e
     @Override
     public void run() {
         try {
-            // espera a que se llenen los datos de EstadoJuego
-            EstadoJuego ej = (EstadoJuego) entrada.readObject();
-            
-            // imprime el puntaje en la consola del servidor
-            System.out.println("Puntaje recibido de un jugador: " + ej.puntuacion);
-            salida.writeObject(ej);
+             while (true) {
+                // Escucha el puntaje que envía el Jugador A
+                EstadoJuego ej = (EstadoJuego) entrada.readObject();
+                
+                System.out.println("Puntaje recibido: " + ej.puntuacion);
+
+                // REENVÍO: Le avisamos a TODOS los demás jugadores
+                // Para esto usamos la lista que debe estar en tu MainServidor
+                for (ManejadorJugador otro : MainServidor.jugadores) {
+                    if (otro != this) { // No te lo mandes a ti mismo
+                        otro.salida.writeObject(ej);
+                        otro.salida.flush(); 
+                    }
+                }
+            }
         } catch (Exception e) {
             // si el jugador se desconecta bruscamente, el error cae aqui
             System.out.println("Conexión perdida con un jugador.");
