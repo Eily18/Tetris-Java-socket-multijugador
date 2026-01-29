@@ -110,7 +110,7 @@ public class PanelDeJuego extends JPanel implements Runnable{
                 Tablero.fijar(actual);
                 puntuacion += Tablero.limpiarlineas() * 100;
 
-                if (puntuacion >= 1000) {
+                if (puntuacion >= 2000) {
                     GameOver = true;
                 }
 
