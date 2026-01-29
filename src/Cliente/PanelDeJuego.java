@@ -102,7 +102,7 @@ public class PanelDeJuego extends JPanel implements Runnable{
     public void run(){ // bucle
         while(!GameOver){
             //mientras no haya perdido
-            try{Thread.sleep(500); }
+            try{Thread.sleep(300); }
             catch(Exception e){} // pausa de medio segundo (gravedad)
             // si la pieza puede seguir bajando
             if (Tablero.puedemover(actual,0,1)){actual.y++;} //baja un nivel
