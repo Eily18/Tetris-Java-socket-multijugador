@@ -18,7 +18,7 @@ public class Pieza {
 
         for (int i = 0; i < FILAS; i++) {
             for (int j = 0; j < COLUMNAS; j++) {
-                // Transposición y reversión de filas para el giro
+                // Transposicion y reversion de filas para el giro
                 nuevaForma[j][FILAS - 1 - i] = forma[i][j];
             }
         }

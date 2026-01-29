@@ -14,6 +14,7 @@ public class PanelDeJuego extends JPanel implements Runnable{
     Pieza siguiente = Pieza.piezaRandom() ;
     boolean GameOver = false; //
     boolean EnMenu = true;
+    boolean modoSolitario = false;
     int puntuacion = 0; //puntos acumulados
     int puntuacionRival = 0; // guardar los puntos que recibimos del oponente
     ConexionCliente red; // Conexion con el servidor
@@ -28,7 +29,7 @@ public class PanelDeJuego extends JPanel implements Runnable{
         muestre el esperando contrincante*/
         this.actual = null;
         this.siguiente = null;
-        // IMPORTANTE: Le decimos a la conexión que este es su panel actual
+        // IMPORTANTE: Le decimos a la conexion que este es su panel actual
         // para que cuando lleguen puntos del rival, sepa a quién avisar.
         if (this.red != null) {
             this.red.setPanel(this);
@@ -37,6 +38,7 @@ public class PanelDeJuego extends JPanel implements Runnable{
             public void keyPressed(KeyEvent e){
                 //presiona s para jugar solo
                 if (e.getKeyCode() == KeyEvent.VK_S && actual == null){
+                    modoSolitario = true; // marca que es juego solitario
                     EmpezarJuego();
                 }
                 if(actual != null){
@@ -76,9 +78,12 @@ public class PanelDeJuego extends JPanel implements Runnable{
 
     }
     
-    //Método para que ConexionCliente nos dé los puntos del rival
+    //Metodo para que ConexionCliente nos dé los puntos del rival
     public void actualizarPuntajeRival(EstadoJuego ej) {
         this.puntuacionRival = ej.puntuacion;
+        if (this.actual == null && !ej.isGameOver){
+            EmpezarJuego();
+        }
         if(ej.isGameOver){ //si el oponente perdio, el juego se detiene
             this.GameOver = true;
         }
@@ -113,7 +118,7 @@ public class PanelDeJuego extends JPanel implements Runnable{
                 siguiente = Pieza.piezaRandom();
 
                 // notificar al servidor el estado actual
-                if (red != null) {
+                if (red != null && !modoSolitario) {
                     try {
                         red.enviar(new EstadoJuego(puntuacion, GameOver));
                     } catch (Exception e) {
@@ -156,7 +161,7 @@ GradientPaint gp = new GradientPaint(0, 0, azulEspacial, 0, getHeight(), negroPr
 g2d.setPaint(gp);
 g2d.fillRect(0, 0, 300, getHeight());
 
-// --- estrellitas
+//estrellitas
 // Dibujamos unos puntitos blancos fijos para que parezcan estrellas
 g.setColor(new Color(255, 255, 255, 150)); // Blanco con transparencia
 g.fillOval(50, 80, 2, 2);
@@ -208,7 +213,7 @@ for (int r = 0; r <= TableroDeJuego.FILAS; r++) {
         for (int r = 0; r < actual.forma.length; r++) {
             for (int c = 0; c < actual.forma[r].length; c++) {
                 if (actual.forma[r][c] == 1) {
-                    // Calculamos la posición real en píxeles
+                    // Calculamos la posicion real en píxeles
                     int x = (actual.x + c) * 30;
                     int y = (actual.y + r) * 30;
                     dibujarCuadrito(g, x, y, Color.CYAN);
@@ -228,7 +233,7 @@ for (int r = 0; r <= TableroDeJuego.FILAS; r++) {
              // ventana de la proxi mapieza
 g.setColor(Color.WHITE);
 g.setFont(new Font("Arial", Font.BOLD, 14));
-g.drawString("SIGUIENTE:", 315, 260); // Un poco más abajo de los puntos
+g.drawString("SIGUIENTE:", 315, 260); // Un poco mas abajo de los puntos
 
            // 1. Dibujamos el fondo negro de la cajita
         // (x=315, y=275, ancho=90, alto=90)
@@ -260,52 +265,54 @@ if (siguiente != null) {
     }
 }
            
-        // puntuaje----
+        // puntuaje
 // Configuración para las "cajas" de los puntos
 int cajaAncho = 160;
 int cajaAlto = 70;
 int margenX = 320; // Dejamos 20px de margen desde el inicio del panel (300+20)
 Color colorCajaFondo = new Color(100, 20, 160); // Un morado un poco más claro
 
-// --- Marcador: TÚ ---
-// 1. Fondo de la caja con esquinas redondeadas
+//  Marcador: Tu
+// Fondo de la caja con esquinas redondeadas
 g.setColor(colorCajaFondo);
 g.fillRoundRect(margenX, 50, cajaAncho, cajaAlto, 20, 20);
-// 2. Borde brillante para que resalte
+// Borde brillante para que resalte
 g.setColor(Color.CYAN);
 g.drawRoundRect(margenX, 50, cajaAncho, cajaAlto, 20, 20);
 
-// 3. Texto de la etiqueta (pequeño)
+// Texto de la etiqueta (pequeño)
 g.setColor(Color.LIGHT_GRAY);
 g.setFont(new Font("Monospaced", Font.BOLD, 14));
 g.drawString("TÚ", margenX + 15, 75);
 
-// 4. Texto del PUNTAJE (grande y llamativo)
+// Texto del PUNTAJE (grande y llamativo)
 g.setColor(Color.CYAN);
 g.setFont(new Font("Monospaced", Font.BOLD, 30));
 // Usamos tu variable 'puntuacion'
 g.drawString("" + puntuacion, margenX + 15, 110);
 
 
-// --- Marcador: RIVAL ---
+// Marcador: RIVAL
+if (red != null && !modoSolitario){ 
 int yRival = 140; // Posición Y para el segundo bloque
 
-// 1. Fondo y borde (usamos Amarillo para diferenciar al rival)
+// Fondo y borde (usamos Amarillo para diferenciar al rival)
 g.setColor(colorCajaFondo);
 g.fillRoundRect(margenX, yRival, cajaAncho, cajaAlto, 20, 20);
 g.setColor(Color.YELLOW); 
 g.drawRoundRect(margenX, yRival, cajaAncho, cajaAlto, 20, 20);
 
-// 2. Etiqueta
+// Etiqueta
 g.setColor(Color.LIGHT_GRAY);
 g.setFont(new Font("Monospaced", Font.BOLD, 14));
 g.drawString("RIVAL", margenX + 15, yRival + 25);
 
-// 3. Puntaje del Rival
+// Puntaje del Rival
 g.setColor(Color.YELLOW);
 g.setFont(new Font("Monospaced", Font.BOLD, 30));
 // Usamos tu variable 'puntuacionRival'
 g.drawString("" + puntuacionRival, margenX + 15, yRival + 60);
+}
     
     //GameOver
 
@@ -313,6 +320,8 @@ g.drawString("" + puntuacionRival, margenX + 15, yRival + 60);
     // oscurecer la pantalla 
     g.setColor(new Color(0, 0, 0, 150)); // El 150 es la transparencia
     g.fillRect(0, 0, getWidth(), getHeight());
+
+    if(red != null && !modoSolitario){ // para multijugador
 
     if(puntuacion > puntuacionRival){
         g.setColor(Color.GREEN);
@@ -328,6 +337,12 @@ g.drawString("" + puntuacionRival, margenX + 15, yRival + 60);
     else {
         g.setColor(Color.YELLOW);
         g.drawString("EMPATE", 85, getHeight() / 2);
+    }
+    }
+    else { //jugar solo
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Monospaced", Font.BOLD, 40));
+        g.drawString("GAME OVER", 50, getHeight()/2);
     }
     
     g.setFont(new Font("Arial", Font.PLAIN, 15));

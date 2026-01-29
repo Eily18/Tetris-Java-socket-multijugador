@@ -30,7 +30,7 @@ public class ManejadorJugador extends Thread{ //la clase es un hilo y hace que e
                 
                 System.out.println("Puntaje recibido: " + ej.puntuacion);
 
-                // REENVÍO: Le avisamos a TODOS los demás jugadores
+                // REENVIO: Le avisamos a TODOS los demás jugadores
                 // Para esto usamos la lista que debe estar en tu MainServidor
                 for (ManejadorJugador otro : MainServidor.jugadores) {
                     if (otro != this) { // No te lo mandes a ti mismo

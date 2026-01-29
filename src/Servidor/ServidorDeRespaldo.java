@@ -5,7 +5,7 @@ public class ServidorDeRespaldo extends Thread{
 // sin estorbarle, como un guardaespaldas que vigila en silencio.
 public class ServidorRespaldo extends Thread {
 
-    /*El método run() es lo que se ejecuta cuando el MainServidor
+    /*El metodo run() es lo que se ejecuta cuando el MainServidor
     hace "new ServidorDeRespaldo().start()"*/
     @Override
     public void run() {

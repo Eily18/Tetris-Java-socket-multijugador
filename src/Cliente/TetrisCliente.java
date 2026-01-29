@@ -12,22 +12,22 @@ public class TetrisCliente {
             "Conexión al Tetris Multijugador", 
             JOptionPane.QUESTION_MESSAGE);
 
-        // Si el usuario cancela o deja vacío, cerramos el programa
+        // Si el usuario cancela o deja vacio, cerramos el programa
         if (ip == null || ip.isEmpty()) {
             System.exit(0);
         }
 
         try {
-            // intentar establecer la conexión de red ANTES de abrir el juego
+            // intentar establecer la conexion de red ANTES de abrir el juego
             // Esto valida si la IP es correcta y si el servidor está encendido
             ConexionCliente red = new ConexionCliente(ip); 
 
-            // ahora la ventana y el panel podrán usar 'red' para enviar/recibir puntos
+            // ahora la ventana y el panel podran usar 'red' para enviar/recibir puntos
             new VentanaDeJuego(red); 
 
         } catch (Exception e) {
-            // si la IP es falsa o no hay conexión, se muestra este error
-            // el juego NO se abrirá, lo cual es lo correcto
+            // si la IP es falsa o no hay conexion, se muestra este error
+            // el juego NO se abrira
             JOptionPane.showMessageDialog(null, 
                 "No se pudo conectar al servidor: " + e.getMessage(), 
                 "Error de Red", 
